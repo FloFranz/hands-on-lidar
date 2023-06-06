@@ -1,0 +1,59 @@
+---
+title: "Prozessierung von LiDAR-Daten mit dem lidR Paket"
+author: "Florian Franz & Jens Wiesehahn"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r source, include=FALSE}
+source('src/setup.R', local = knitr::knit_global())
+```
+
+### Die Dateiformate zur Speicherung von LiDAR-Daten: .las/.laz
+
+**LAS (Lidar Application Schema)**
+
+- speziell für die Speicherung von LiDAR-Daten entwickelt
+- Standard Format
+- können sowohl rohe als auch verarbeitete LiDAR-Daten enthalten
+- Informationen zu Punktkoordinaten, Klassifizierungen, Intensitäten, ...
+
+**LAZ (LASzip Compressed Lidar)**
+
+- komprimierte Version des LAS-Formats
+- verringerte Dateigröße --> effektiverer Speicherung und Verarbeitung
+- sonst gleiche Struktur wie LAS-Dateien
+
+### Das R Paket *lidR*
+
+*"lidR ist ein R-Paket zur Manipulation und Visualisierung von Airborne Laser Scanning (ALS) Daten mit dem Schwerpunkt auf forstwirtschaftliche Anwendungen"* (Roussel et al. 2022).
+
+- entwickelt im Rahmen des [AWARE](https://awareproject.ca/) Projekts an der University of British Columbia (2015-2018)
+- weiterentwickelt durch finanzielle Unterstützung des [Ministère des Forêts, de la Faune et des Parcs of Québec](https://www.quebec.ca/gouvernement/ministere/forets-faune-parcs) an der  [Laval University](https://www.ulaval.ca/en) (2018-2021)
+- Hauptentwickler: Jean-Romain Roussel
+- Publikation: [lidR: An R package for analysis of Airborne Laser Scanning (ALS) data](https://www.sciencedirect.com/science/article/pii/S0034425720304314)
+- open source: [CRAN](https://cran.r-project.org/web/packages/lidR/), [GitHub](https://github.com/r-lidar/lidR)
+
+### Import einer LAZ-Datei
+
+```{r import}
+las_files <- list.files(input_dir,
+                        pattern = glob2rx("*.laz"),
+                        full.names = TRUE)
+  
+las <- readLAS(las_files)
+
+print(las)
+```
+
+
+
+### Quellen
+
+Roussel J, Goodbody TR, Tompalski P (2022). The lidR package. https://r-lidar.github.io/lidRbook/index.html
+
+Roussel J, Auty D, Coops NC, Tompalski P, Goodbody TR, Meador AS, Bourdon J, de Boissieu F, Achim A (2020). “lidR: An R package for analysis of Airborne Laser Scanning (ALS) data.” Remote Sensing of Environment, 251, 112061. ISSN 0034-4257, doi:10.1016/j.rse.2020.112061, https://www.sciencedirect.com/science/article/pii/S0034425720304314. 
