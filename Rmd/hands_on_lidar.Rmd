@@ -50,6 +50,55 @@ las <- readLAS(las_files)
 print(las)
 ```
 
+### Validierung von LiDAR-Daten
+
+- häufig z.B. doppelte Punkte --> kann zu Problemen bei der Erkennung von Bäumen, zu ungültigen Metriken oder zu Fehlern bei der DGM-Erstellung führen
+- ungültige Koordinatensysteme
+- ...
+
+```{r check, eval=FALSE}
+las_check(las)
+```
+
+![](../data/las_check_output.png)
+
+### Plotting
+
+```{r plot pc_old, eval=FALSE}
+plot(las)
+```
+
+![](../data/pc_plot.png)
+
+```{r outliers}
+max(las@data[["Z"]])
+```
+
+- höchste Erhebung im Göttinger Wald: Mackenröder Spitze (ca. 427 m ü. NHN)
+- Riesenmammutbäume im Göttinger Wald???
+
+#### Filterung der Punktwolke
+
+- nur Punkte kleiner gleich 500 m --> also könnten immer noch ca. 70 m hohe Bäume enthalten sein
+
+```{r filter poi}
+las_new <- lidR::filter_poi(las, Z <= 500)
+```
+
+```{r plot pc_new, eval=FALSE}
+plot(las_new)
+```
+
+```{r video, echo=FALSE}
+video_path  <- paste0(getwd(), '/data/')
+video_files <- list.files(video_path,
+                         pattern = "\\.mp4$",
+                         recursive = TRUE,
+                         all.files = FALSE,
+                         full.names = TRUE)
+```
+
+<iframe width="720" height="480" src="`r video_files[1]`" align="middle" frameborder="0" allowfullscreen></iframe>
 
 
 ### Quellen

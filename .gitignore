@@ -48,6 +48,8 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# tif and laz files
+# tif, laz, png, mp4 files
 *.tif
 *.laz
+*.png
+*.mp4
