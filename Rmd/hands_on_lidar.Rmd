@@ -40,6 +40,8 @@ source('src/setup.R', local = knitr::knit_global())
 
 ### Import einer LAZ-Datei
 
+![](../data/study_area.png)
+
 ```{r import}
 las_files <- list.files(input_dir,
                         pattern = glob2rx("*.laz"),
@@ -115,6 +117,47 @@ ggplot(las_tr@data, aes(X,Z, color = Z)) +
 ```
 
 ![](../data/cross_section_plot.png){width=120%}
+
+### Generierung eines Vegetationshöhenmodells
+
+- stellt die Höhe der Vegetation dar
+- für forstliche Untersuchungen besonders relevant
+
+#### Höhen Normalisierung
+
+- Beseitigung der Geländehöhe von der Gesamthöhe
+- zwei Ansätze:
+
+**1. Subtrahieren der DTM-Höhe von der DOM-Höhe**
+
+$VHM = DOM - DGM$
+
+```{r DTM normalization, warning=FALSE}
+dtm <- lidR::rasterize_terrain(las_new, res = 1, knnidw())
+plot(dtm, col = gray(1:50/50))
+
+nlas <- las_new - dtm
+
+hist(filter_ground(nlas)$Z, breaks = seq(-2.5, 2.5, 0.01), main = "", xlab = "Höhe")
+```
+
+- nicht alle Bodenpunkte haben den Wert 0
+- Grund: Rasterformat des DGM --> Lage der Pixel stimmt nicht mit der Lage der Bodenpunkte überein
+- zu jedem Pixel mit einem Wert gibt es eigentlich mehrere Bodenpunkte
+- alle Punkte innerhalb eines bestimmten Pixels werden mit dem exakt gleichen Höhenwert normalisiert 
+
+**2. Interpolation der Bodenpunkte und anschließend Subtraktion von den Nicht-Bodenpunkten**
+
+- Interpolation der Höhe jedes einzelnen Punktes anhand von Bodenpunkten
+
+```{r point cloud normalization, results='hide'}
+nlas <- lidR::normalize_height(las_new, knnidw())
+
+hist(filter_ground(nlas)$Z, breaks = seq(-0.5, 0.5, 0.01), main = "", xlab = "Höhe")
+```
+
+
+
 
 
 ### Quellen
