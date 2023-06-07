@@ -100,6 +100,22 @@ video_files <- list.files(video_path,
 
 <iframe width="720" height="480" src="`r video_files[1]`" align="middle" frameborder="0" allowfullscreen></iframe>
 
+#### Cross section plot
+
+```{r cross section plot, fig.height=10, eval=FALSE}
+p1 <- c(569250, 5708000)
+p2 <- c(569750, 5709000 )
+las_tr <- lidR::clip_transect(las_new, p1, p2, width = 4, xz = TRUE)
+
+ggplot(las_tr@data, aes(X,Z, color = Z)) + 
+  geom_point(size = 0.5) + 
+  coord_equal() + 
+  theme_minimal() +
+  scale_color_gradientn(colours = height.colors(50))
+```
+
+![](../data/cross_section_plot.png){width=120%}
+
 
 ### Quellen
 
