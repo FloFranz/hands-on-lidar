@@ -118,7 +118,7 @@ ggplot(las_tr@data, aes(X,Z, color = Z)) +
 
 ![](../data/cross_section_plot.png){width=120%}
 
-### Generierung eines Vegetationshöhenmodells
+### Generierung eines Vegetationshöhenmodells (VHM)
 
 - stellt die Höhe der Vegetation dar
 - für forstliche Untersuchungen besonders relevant
@@ -181,25 +181,26 @@ boxplot(nlas_new[["Z"]])
 - Zuordnung der Höhe des höchsten Punktes zu jedem Pixel
 
 ```{r point to raster, warning=FALSE}
-chm <- lidR::rasterize_canopy(nlas_new, res = 1, algorithm = p2r())
-plot(chm, col = height.colors(25))
+chm_p2r <- lidR::rasterize_canopy(nlas_new, res = 1, algorithm = p2r())
+plot(chm_p2r, col = height.colors(25))
 ```
 
 - <span style="color: green;">Vorteil: rechnerisch einfach und schnell</span>
 - <span style="color: red;">Nachteil: einige Pixel können leer sein, wenn die Auflösung zu fein für die verfügbare Punktdichte ist</span>
 
 ```{r point to raster higher res, warning=FALSE}
-chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = p2r())
-plot(chm, col = height.colors(25))
+chm_p2r <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = p2r())
+plot(chm_p2r, col = height.colors(25))
 ```
 
 Lösung:
+
 - Verringerung der Anzahl leerer Pixel durch Ersetzung der Punkte mit Scheiben (mit definierten Radius)
 - Interpolation der verbleibenden leeren Pixel
 
 ```{r point to raster optimized, warning=FALSE}
-chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, p2r(0.2, na.fill = tin()))
-plot(chm, col = height.colors(25))
+chm_p2r <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = p2r(0.2, na.fill = tin()))
+plot(chm_p2r, col = height.colors(25))
 ```
 
 **Triangulation**
@@ -208,24 +209,49 @@ plot(chm, col = height.colors(25))
 - Interpolation innerhalb jeden Dreiecks, um einen Höhenwert für jedes Pixel eines Rasters zu berechnen
 
 ```{r triangulation, warning=FALSE, results='hide'}
-chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = dsmtin())
-plot(chm, col = height.colors(25))
+chm_tin <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = dsmtin())
+plot(chm_tin, col = height.colors(25))
 ```
 
 - <span style="color: green;">Vorteil: parameterfrei, keine leeren Pixel unabhängig von der Auflösung</span>
-- <span style="color: red;">Nachteil: Lücken und anderen Störungen (pits) durch *first returns*, die tief unter dem Kronendach liegen, geringere Performance bei Fehlen vieler Punkte</span>
+- <span style="color: red;">Nachteil: Lücken und anderen Störungen (*pits*) durch *first returns*, die tief unter dem Kronendach liegen, geringere Performance bei Fehlen vieler Punkte</span>
 
 Lösung:
+
 - Nachbearbeitung des Höhenmodells (Glättung)
 - Entfernung von Dreiecken mit einer definierten Kantenlänge
 
 ```{r triangulation optimized, warning=FALSE, results='hide'}
-chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = dsmtin(max_edge = 8))
-plot(chm, col = height.colors(25))
+chm_tin <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = dsmtin(max_edge = 8))
+plot(chm_tin, col = height.colors(25))
 ```
 
 **Pit-free algorithm**
 
+- aufeinanderfolgende Höhenschwellenwerte mit Delaunay-Triangulationen der *first returns*
+- Entfernung von zu großen Dreiecken für jeden Schwellenwert
+- Stapelung der einzelnen Raster und Beibehaltung der jeweils höchsten Pixel
+
+![](../data/pitfree_schema.png)
+
+```{r pitfree, warning=FALSE, results='hide'}
+chm_pitfree <- lidR::rasterize_canopy(nlas_new, res = 0.5,
+                                      algorithm = pitfree(thresholds = c(0, 10, 20), max_edge = c(0, 1.5)))
+plot(chm_pitfree, col = height.colors(25))
+```
+
+- <span style="color: green;">Vorteil: Vermeidung von *pits*, keine Nachbearbeitung oder Korrektur nötig</span>
+- <span style="color: red;">Nachteil: rechnerisch aufwändiger und langsamer</span>
+
+### Vergleich der unterschiedlich berechneten VHMs
+
+```{r chms plot, warning=FALSE, echo=FALSE}
+par(mfrow = c(1,3))
+
+plot(chm_p2r, main = "VHM point-to-raster", col = height.colors(25))
+plot(chm_tin, main = "VHM triangulation", col = height.colors(25))
+plot(chm_pitfree, main = "VHM pitfree", col = height.colors(25))
+```
 
 
 
