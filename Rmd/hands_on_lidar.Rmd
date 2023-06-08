@@ -156,6 +156,50 @@ nlas <- lidR::normalize_height(las_new, knnidw())
 hist(filter_ground(nlas)$Z, breaks = seq(-0.5, 0.5, 0.01), main = "", xlab = "Höhe")
 ```
 
+```{r remove outliers}
+boxplot(nlas[["Z"]])
+
+q1 <- quantile(nlas[["Z"]], .25)
+q3 <- quantile(nlas[["Z"]], .75)
+iqr <- IQR(nlas[["Z"]])
+
+# Entfernung von Werten die das 1,5-fache des Interquartilsabstands größer als das dritte Quartil
+# oder das 1,5-fache des Interquartilsabstands kleiner als das erste Quartil (Q1) betragen
+nlas_rm_outliers <- subset(nlas, nlas[["Z"]] > (q1 - 1.5 * iqr) & nlas[["Z"]] < (q3 + 1.5 * iqr))
+nlas_new <- subset(nlas_rm_outliers, nlas_rm_outliers[["Z"]] >= 0)
+
+boxplot(nlas_new[["Z"]])
+```
+
+#### Rastern der normalisierten Punktwolke
+
+- verschiedene Methoden
+
+**Point-to-raster**
+
+- Erstellung eines Gitters mit einer benutzerdefinierten Auflösung
+- Zuordnung der Höhe des höchsten Punktes zu jedem Pixel
+
+```{r point to raster, warning=FALSE}
+chm <- lidR::rasterize_canopy(nlas_new, res = 1, algorithm = p2r())
+plot(chm, col = height.colors(25))
+```
+
+- <span style="color: green;">Vorteil: rechnerisch einfach und schnell</span>
+- <span style="color: red;">Nachteil: einige Pixel können leer sein, wenn die Auflösung zu fein für die verfügbare Punktdichte ist</span>
+
+```{r point to raster higher res, warning=FALSE}
+chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = p2r())
+plot(chm, col = height.colors(25))
+```
+
+- Verringerung der Anzahl leerer Pixel durch Ersetzung der Punkte mit Scheiben (mit definierten Radius)
+- Interpolation der verbleibenden leeren Pixel
+
+```{r point to raster optimized, warning=FALSE}
+chm <- rasterize_canopy(nlas_new, res = 0.5, p2r(0.2, na.fill = tin()))
+plot(chm, col = height.colors(25))
+```
 
 
 
