@@ -193,13 +193,40 @@ chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = p2r())
 plot(chm, col = height.colors(25))
 ```
 
+Lösung:
 - Verringerung der Anzahl leerer Pixel durch Ersetzung der Punkte mit Scheiben (mit definierten Radius)
 - Interpolation der verbleibenden leeren Pixel
 
 ```{r point to raster optimized, warning=FALSE}
-chm <- rasterize_canopy(nlas_new, res = 0.5, p2r(0.2, na.fill = tin()))
+chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, p2r(0.2, na.fill = tin()))
 plot(chm, col = height.colors(25))
 ```
+
+**Triangulation**
+
+- Erstellung eines unregelmäßiges Dreiecksnetzes (engl. *Triangulated Irregular Network, TIN*) mit den *first returns*
+- Interpolation innerhalb jeden Dreiecks, um einen Höhenwert für jedes Pixel eines Rasters zu berechnen
+
+```{r triangulation, warning=FALSE, results='hide'}
+chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = dsmtin())
+plot(chm, col = height.colors(25))
+```
+
+- <span style="color: green;">Vorteil: parameterfrei, keine leeren Pixel unabhängig von der Auflösung</span>
+- <span style="color: red;">Nachteil: Lücken und anderen Störungen (pits) durch *first returns*, die tief unter dem Kronendach liegen, geringere Performance bei Fehlen vieler Punkte</span>
+
+Lösung:
+- Nachbearbeitung des Höhenmodells (Glättung)
+- Entfernung von Dreiecken mit einer definierten Kantenlänge
+
+```{r triangulation optimized, warning=FALSE, results='hide'}
+chm <- lidR::rasterize_canopy(nlas_new, res = 0.5, algorithm = dsmtin(max_edge = 8))
+plot(chm, col = height.colors(25))
+```
+
+**Pit-free algorithm**
+
+
 
 
 
