@@ -245,7 +245,7 @@ plot(chm_pitfree, col = height.colors(25))
 
 ### Vergleich der unterschiedlich berechneten VHMs
 
-```{r chms plot, warning=FALSE, echo=FALSE}
+```{r chms plot, warning=FALSE, echo=FALSE, dpi=100, fig.width=15}
 par(mfrow = c(1,3))
 
 plot(chm_p2r, main = "VHM point-to-raster", col = height.colors(25))
@@ -253,9 +253,28 @@ plot(chm_tin, main = "VHM triangulation", col = height.colors(25))
 plot(chm_pitfree, main = "VHM pitfree", col = height.colors(25))
 ```
 
+```{r boxplots, warning=FALSE, echo=FALSE}
+par(mfrow = c(1,3))
 
+boxplot(chm_p2r, main = "VHM point-to-raster")
+boxplot(chm_tin, main = "VHM triangulation")
+boxplot(chm_pitfree, main = "VHM pitfree")
+```
 
+```{r chm statistics, warning=FALSE, echo=FALSE}
+stats_chm_p2r <- terra::summary(chm_p2r, na.rm = TRUE)
+stats_chm_tin <- terra::summary(chm_tin, na.rm = TRUE)
+stats_chm_pitfree <- terra::summary(chm_pitfree, na.rm = TRUE)
 
+print("VHM point-to-raster:")
+stats_chm_p2r
+cat("\n")
+print("VHM triangulation:")
+stats_chm_tin
+cat("\n")
+print("VHM pitfree:")
+stats_chm_pitfree
+```
 
 ### Quellen
 
